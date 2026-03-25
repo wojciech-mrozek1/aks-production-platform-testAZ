@@ -79,6 +79,30 @@ resource "azurerm_kubernetes_cluster_node_pool" "app" {
   tags = local.common_tags
 }
 
+resource "azurerm_kubernetes_cluster_node_pool" "db" {
+  name                  = "dbpool"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  vm_size               = var.app_node_vm_size
+  vnet_subnet_id        = azurerm_subnet.aks.id
+  mode                  = "User"
+
+  auto_scaling_enabled = true
+  min_count            = 1
+  max_count            = 2
+
+  node_taints = [
+    "workload=db:NoSchedule"
+  ]
+
+  upgrade_settings {
+    max_surge                     = "10%"
+    drain_timeout_in_minutes      = 0
+    node_soak_duration_in_minutes = 0
+  }
+
+  tags = local.common_tags
+}
+
 resource "azurerm_kubernetes_cluster_node_pool" "monitor" {
   name                  = "monpool"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
@@ -89,6 +113,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "monitor" {
   auto_scaling_enabled = true
   min_count            = var.monitor_node_min_count
   max_count            = var.monitor_node_max_count
+
+  node_taints = [
+    "workload=monitoring:NoSchedule"
+  ]
 
   upgrade_settings {
     max_surge                     = "10%"
