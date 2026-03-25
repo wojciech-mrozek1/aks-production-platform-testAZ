@@ -54,7 +54,7 @@ jobs:
 
       - name: Render manifests
         run: |
-          kustomize build k8s/overlays/test > rendered.yaml
+          kustomize build --load-restrictor LoadRestrictionsNone k8s/overlays/test > rendered.yaml
 
       - name: Deploy to private AKS
         run: |
