@@ -1,7 +1,12 @@
 grafana:
-  adminPassword: "StrongGrafanaPass123!"
+  admin:
+    existingSecret: grafana-admin-secret
+    userKey: admin-user
+    passwordKey: admin-password
+
   nodeSelector:
     agentpool: monpool
+
   service:
     type: ClusterIP
 
