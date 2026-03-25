@@ -1,0 +1,24 @@
+grafana:
+  adminPassword: "StrongGrafanaPass123!"
+  nodeSelector:
+    agentpool: monpool
+  service:
+    type: ClusterIP
+
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      agentpool: monpool
+
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector:
+      agentpool: monpool
+
+kube-state-metrics:
+  nodeSelector:
+    agentpool: monpool
+
+prometheusOperator:
+  nodeSelector:
+    agentpool: monpool
