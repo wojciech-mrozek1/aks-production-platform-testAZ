@@ -22,6 +22,7 @@ resources:
   - ../../base/database/postgres-exporter-deployment.yaml
   - ../../base/database/postgres-exporter-service.yaml
   - ../../base/monitoring/postgres-exporter-servicemonitor.yaml
+  - ../../base/monitoring/postgres-dashboard-configmap.yaml
 
 images:
   - name: app-image
