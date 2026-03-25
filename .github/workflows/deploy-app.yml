@@ -1,6 +1,13 @@
 name: Deploy App to AKS
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'k8s/**'
+      - 'scripts/**'
+      - '.github/workflows/deploy-app.yml'
   workflow_run:
     workflows: ["Build and Push Image"]
     types:
@@ -14,6 +21,7 @@ jobs:
   deploy:
     if: >
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
 
@@ -22,7 +30,7 @@ jobs:
       IMAGE_NAME: ${{ vars.IMAGE_NAME }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
-      IMAGE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      IMAGE_TAG: latest
 
     steps:
       - name: Checkout
@@ -64,21 +72,35 @@ jobs:
             --file rendered.yaml \
             --command "kubectl apply -f rendered.yaml"
 
-      - name: Verify rollout
+      - name: Verify app rollout
         run: |
           az aks command invoke \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AKS_CLUSTER_NAME" \
             --command "kubectl rollout status deployment/test-app -n app --timeout=180s"
 
-      - name: Verify pods
+      - name: Verify database rollout
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl rollout status statefulset/postgres -n database --timeout=180s"
+
+      - name: Verify app pods
         run: |
           az aks command invoke \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AKS_CLUSTER_NAME" \
             --command "kubectl get pods -n app -o wide"
 
-      - name: Verify service
+      - name: Verify database resources
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl get pods -n database -o wide && kubectl get pvc -n database && kubectl get svc -n database"
+
+      - name: Verify app service
         run: |
           az aks command invoke \
             --resource-group "$AZURE_RESOURCE_GROUP" \

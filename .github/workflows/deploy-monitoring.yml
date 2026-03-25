@@ -1,0 +1,38 @@
+name: Deploy Monitoring
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-monitoring:
+    runs-on: ubuntu-latest
+
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: >
+            {
+              "clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      - name: Deploy monitoring manifests
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl apply -f monitoring.yaml" \
+            --file monitoring.yaml
