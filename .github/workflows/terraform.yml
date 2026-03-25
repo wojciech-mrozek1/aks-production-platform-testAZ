@@ -1,19 +1,23 @@
-name: Terraform Plan
+name: Terraform
 
 on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform.yml'
   push:
     branches:
       - main
     paths:
       - 'infra/**'
-      - '.github/workflows/infra-plan.yml'
+      - '.github/workflows/terraform.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  terraform-plan:
+  terraform:
     runs-on: ubuntu-latest
 
     defaults:
@@ -35,23 +39,13 @@ jobs:
               "tenantId":"${{ secrets.AZURE_TENANT_ID }}"
             }
 
-      - name: Get PostgreSQL password from Key Vault
-        run: |
-          set -euo pipefail
-          PG_PASS=$(az keyvault secret show \
-            --vault-name kv-test-lab-wmrozek \
-            --name postgres-admin-password \
-            --query value -o tsv)
-          echo "::add-mask::$PG_PASS"
-          echo "TF_VAR_postgres_admin_password=$PG_PASS" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.14.7
 
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -reconfigure -input=false
 
       - name: Terraform Fmt Check
         run: terraform fmt -check
@@ -59,5 +53,14 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
+      - name: Terraform Plan (PR)
+        if: github.event_name == 'pull_request'
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform Plan (main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -input=false -auto-approve tfplan

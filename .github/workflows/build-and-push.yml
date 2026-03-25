@@ -1,0 +1,44 @@
+name: Build and Push Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - '.github/workflows/build-and-push.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: >
+            {
+              "clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      - name: Build image in ACR
+        run: |
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "${IMAGE_NAME}:${GITHUB_SHA}" \
+            --image "${IMAGE_NAME}:latest" \
+            ./app

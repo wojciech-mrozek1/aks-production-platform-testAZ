@@ -12,6 +12,11 @@ crash.log
 __pycache__/
 *.pyc
 
+# Node.js
+app/node_modules/
+node_modules/
+npm-debug.log
+
 # VS Code
 .vscode/
 

@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base/namespaces/app-ns.yaml
+  - ../../base/app/configmap.yaml
+  - ../../base/app/secret.yaml
+  - ../../base/app/serviceaccount.yaml
+  - ../../base/app/service.yaml
+  - ../../base/app/deployment.yaml
+  - ../../base/app/hpa.yaml
+  - ../../base/app/pdb.yaml
+  - ../../base/app/networkpolicy.yaml
+
+images:
+  - name: app-image
+    newName: acrtestlabnptca.azurecr.io/app
+    newTag: manual-test
+
+patches:
+  - path: app-patch.yaml

@@ -13,15 +13,3 @@ output "acr_name" {
 output "acr_login_server" {
   value = azurerm_container_registry.this.login_server
 }
-
-output "postgres_server_name" {
-  value = azurerm_postgresql_flexible_server.this.name
-}
-
-output "postgres_fqdn" {
-  value = azurerm_postgresql_flexible_server.this.fqdn
-}
-
-output "postgres_database_name" {
-  value = azurerm_postgresql_flexible_server_database.app.name
-}

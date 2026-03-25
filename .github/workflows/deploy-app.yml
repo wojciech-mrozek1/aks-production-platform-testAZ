@@ -1,0 +1,86 @@
+name: Deploy App to AKS
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Image"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+
+    env:
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
+      IMAGE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: >
+            {
+              "clientId":"${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId":"${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install kustomize
+        run: |
+          curl -sL https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh | bash
+          sudo mv kustomize /usr/local/bin/kustomize
+
+      - name: Set image tag in overlay
+        run: |
+          cd k8s/overlays/test
+          kustomize edit set image app-image=${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
+
+      - name: Render manifests
+        run: |
+          kustomize build k8s/overlays/test > rendered.yaml
+
+      - name: Deploy to private AKS
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --file rendered.yaml \
+            --command "kubectl apply -f rendered.yaml"
+
+      - name: Verify rollout
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl rollout status deployment/test-app -n app --timeout=180s"
+
+      - name: Verify pods
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl get pods -n app -o wide"
+
+      - name: Verify service
+        run: |
+          az aks command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --command "kubectl get svc -n app"

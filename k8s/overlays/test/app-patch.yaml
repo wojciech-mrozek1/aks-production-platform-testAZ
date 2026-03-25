@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  namespace: app
+spec:
+  replicas: 1
+  template:
+    spec:
+      nodeSelector:
+        agentpool: apppool
+      tolerations:
+        - key: "workload"
+          operator: "Equal"
+          value: "app"
+          effect: "NoSchedule"

@@ -6,7 +6,7 @@ variable "subscription_id" {
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "westeurope"
+  default     = "germanywestcentral"
 }
 
 variable "project_name" {
@@ -33,12 +33,6 @@ variable "aks_subnet_cidr" {
   default     = "10.10.1.0/24"
 }
 
-variable "postgres_subnet_cidr" {
-  description = "CIDR for PostgreSQL subnet"
-  type        = string
-  default     = "10.10.2.0/24"
-}
-
 variable "aks_kubernetes_version" {
   description = "AKS Kubernetes version"
   type        = string
@@ -47,17 +41,17 @@ variable "aks_kubernetes_version" {
 
 variable "system_node_vm_size" {
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_B2s_v2"
 }
 
 variable "app_node_vm_size" {
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_B2s_v2"
 }
 
 variable "monitor_node_vm_size" {
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_B2s_v2"
 }
 
 variable "system_node_count" {
@@ -83,32 +77,6 @@ variable "monitor_node_min_count" {
 variable "monitor_node_max_count" {
   type    = number
   default = 2
-}
-
-variable "postgres_admin_username" {
-  type    = string
-  default = "pgadmin"
-}
-
-variable "postgres_admin_password" {
-  description = "PostgreSQL admin password"
-  type        = string
-  sensitive   = true
-}
-
-variable "postgres_sku_name" {
-  type    = string
-  default = "B_Standard_B1ms"
-}
-
-variable "postgres_storage_mb" {
-  type    = number
-  default = 32768
-}
-
-variable "postgres_version" {
-  type    = string
-  default = "16"
 }
 
 variable "tags" {
