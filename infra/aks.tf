@@ -29,6 +29,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     type                         = "VirtualMachineScaleSets"
     only_critical_addons_enabled = true
     temporary_name_for_rotation  = "systmp"
+
+    upgrade_settings {
+      max_surge                     = "10%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
@@ -64,6 +70,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "app" {
     "workload=app:NoSchedule"
   ]
 
+  upgrade_settings {
+    max_surge                     = "10%"
+    drain_timeout_in_minutes      = 0
+    node_soak_duration_in_minutes = 0
+  }
+
   tags = local.common_tags
 }
 
@@ -78,9 +90,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "monitor" {
   min_count            = var.monitor_node_min_count
   max_count            = var.monitor_node_max_count
 
-  node_taints = [
-    "workload=monitoring:NoSchedule"
-  ]
+  upgrade_settings {
+    max_surge                     = "10%"
+    drain_timeout_in_minutes      = 0
+    node_soak_duration_in_minutes = 0
+  }
 
   tags = local.common_tags
 }
