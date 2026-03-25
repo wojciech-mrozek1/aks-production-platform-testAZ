@@ -26,6 +26,11 @@ spec:
                 name: app-config
             - secretRef:
                 name: app-secret
+          env:
+            - name: DB_HOST
+              value: postgres.database.svc.cluster.local
+            - name: DB_PORT
+              value: "5432"
           readinessProbe:
             httpGet:
               path: /healthz

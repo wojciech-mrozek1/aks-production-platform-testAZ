@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - ../../base/namespaces/app-ns.yaml
+  - ../../base/namespaces/database-ns.yaml
+
   - ../../base/app/configmap.yaml
   - ../../base/app/secret.yaml
   - ../../base/app/serviceaccount.yaml
@@ -11,6 +13,10 @@ resources:
   - ../../base/app/hpa.yaml
   - ../../base/app/pdb.yaml
   - ../../base/app/networkpolicy.yaml
+
+  - ../../base/database/secret.yaml
+  - ../../base/database/service.yaml
+  - ../../base/database/statefulset.yaml
 
 images:
   - name: app-image
