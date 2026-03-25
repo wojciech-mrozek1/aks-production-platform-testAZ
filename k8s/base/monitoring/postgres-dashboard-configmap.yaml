@@ -12,10 +12,95 @@ data:
         "list": []
       },
       "editable": true,
-      "panels": [],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Postgres Up",
+          "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "pg_up{job=\"postgres-exporter\"}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Connections",
+          "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(pg_stat_database_numbackends{job=\"postgres-exporter\"})",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Transactions per second",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+          "targets": [
+            {
+              "expr": "rate(pg_stat_database_xact_commit{job=\"postgres-exporter\"}[5m]) + rate(pg_stat_database_xact_rollback{job=\"postgres-exporter\"}[5m])",
+              "legendFormat": "{{datname}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Database Size",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+          "targets": [
+            {
+              "expr": "pg_database_size_bytes{job=\"postgres-exporter\"}",
+              "legendFormat": "{{datname}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Cache Hit Ratio",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "targets": [
+            {
+              "expr": "pg_stat_database_blks_hit{job=\"postgres-exporter\"} / (pg_stat_database_blks_hit{job=\"postgres-exporter\"} + pg_stat_database_blks_read{job=\"postgres-exporter\"})",
+              "legendFormat": "{{datname}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Dead Tuples",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "targets": [
+            {
+              "expr": "pg_stat_user_tables_n_dead_tup{job=\"postgres-exporter\"}",
+              "legendFormat": "{{relname}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
       "schemaVersion": 38,
       "style": "dark",
-      "tags": ["postgres"],
+      "tags": ["postgres", "database"],
       "templating": {
         "list": []
       },
