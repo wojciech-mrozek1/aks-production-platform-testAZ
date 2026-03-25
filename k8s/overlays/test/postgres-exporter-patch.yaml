@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+  namespace: database
+spec:
+  template:
+    spec:
+      nodeSelector:
+        agentpool: dbpool
+      tolerations:
+        - key: "workload"
+          operator: "Equal"
+          value: "db"
+          effect: "NoSchedule"

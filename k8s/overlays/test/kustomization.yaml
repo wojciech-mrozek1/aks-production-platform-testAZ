@@ -18,6 +18,11 @@ resources:
   - ../../base/database/service.yaml
   - ../../base/database/statefulset.yaml
 
+  - ../../base/database/postgres-exporter-secret.yaml
+  - ../../base/database/postgres-exporter-deployment.yaml
+  - ../../base/database/postgres-exporter-service.yaml
+  - ../../base/monitoring/postgres-exporter-servicemonitor.yaml
+
 images:
   - name: app-image
     newName: acrtestlabnptca.azurecr.io/app
@@ -26,3 +31,4 @@ images:
 patches:
   - path: app-patch.yaml
   - path: database-patch.yaml
+  - path: postgres-exporter-patch.yaml
