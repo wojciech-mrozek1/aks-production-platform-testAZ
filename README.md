@@ -1,252 +1,261 @@
-# 🚀 Azure Private AKS Platform
+# 🚀 Production-Grade AKS Platform with Monitoring & Stateful Workloads
 
-### Terraform • Kubernetes • PostgreSQL • Key Vault • GitHub Actions
+This project demonstrates a **production-style Kubernetes platform** built on **Azure Kubernetes Service (AKS)**.
 
-![Azure](https://img.shields.io/badge/Azure-Cloud-blue?logo=microsoft-azure)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?logo=terraform)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-AKS-326CE5?logo=kubernetes)
-![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=github-actions)
-![Security](https://img.shields.io/badge/Security-Private%20Architecture-green)
+It showcases real-world DevOps practices including:
 
----
-
-## 📌 Overview
-
-This project demonstrates how to build a **secure, private cloud platform on Microsoft Azure** using Infrastructure as Code and modern DevOps practices.
-
-The goal is to simulate a **production-like environment** with:
-
-* 🔐 private networking (no public exposure)
-* ⚙️ automated infrastructure provisioning
-* 🔑 secure secret management
-* ☸️ Kubernetes-based workloads
-* 🔄 CI/CD for infrastructure
+* Infrastructure as Code (Terraform)
+* CI/CD pipelines (GitHub Actions)
+* Workload isolation using node pools and taints
+* Stateful workloads with persistent storage
+* Full observability stack (Prometheus + Grafana)
 
 ---
 
-## 🏗️ Architecture
+## 🧱 Architecture Diagram
+
+### High-Level Architecture
 
 ```text
-                (NO PUBLIC ACCESS)
-
-        ┌─────────────────────────────┐
-        │      AKS (Private)          │
-        │   Application workloads     │
-        └────────────┬────────────────┘
-                     │
-                     ▼
-        ┌─────────────────────────────┐
-        │ PostgreSQL Flexible Server  │
-        │       (Private)             │
-        └─────────────────────────────┘
-
-        ┌─────────────────────────────┐
-        │ Azure Key Vault             │
-        │ Secrets (DB password etc.)  │
-        └─────────────────────────────┘
-
-        ┌─────────────────────────────┐
-        │ Azure Container Registry    │
-        └─────────────────────────────┘
-
-        ┌─────────────────────────────┐
-        │ Log Analytics               │
-        └─────────────────────────────┘
-
-        VNet: 10.10.0.0/16
+                    ┌─────────────────────────────┐
+                    │        GitHub Actions        │
+                    │      (CI/CD Pipeline)       │
+                    └────────────┬────────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────────┐
+                    │ Azure Container Registry    │
+                    │           (ACR)             │
+                    └────────────┬────────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────────┐
+                    │ Azure Kubernetes Service    │
+                    │       (Private AKS)         │
+                    └────────────┬────────────────┘
+                                 │
+        ┌───────────────┬────────┼───────────┬───────────────┐
+        ▼               ▼        ▼           ▼               ▼
+   ┌────────┐     ┌────────┐ ┌────────┐ ┌────────┐     ┌────────┐
+   │ system │     │ apppool│ │ dbpool │ │ monpool│     │ Azure  │
+   │ nodes  │     │ (app)  │ │ (DB)   │ │monitor │     │ Disk   │
+   └────────┘     └────────┘ └────────┘ └────────┘     └────────┘
+                         │           │          │
+                         ▼           ▼          ▼
+                    ┌────────┐  ┌────────┐ ┌─────────────┐
+                    │  App   │  │Postgres│ │ Prometheus  │
+                    │        │  │Stateful│ │ Grafana     │
+                    └────────┘  └────────┘ │ Alertmanager│
+                                           └─────────────┘
 ```
 
 ---
 
-## 🔐 Security First Approach
+## 🧠 Node Pool Strategy
 
-This project is built with **security as a primary concern**:
+| Pool    | Purpose                         |
+| ------- | ------------------------------- |
+| system  | Kubernetes core components      |
+| apppool | Application workloads           |
+| dbpool  | PostgreSQL (stateful workloads) |
+| monpool | Monitoring stack                |
 
-* ✅ AKS deployed as **private cluster**
-* ✅ PostgreSQL deployed in **private subnet**
-* ✅ No public database exposure
-* ✅ Secrets stored in **Azure Key Vault**
-* ✅ No secrets in Git repository
-* ✅ RBAC-based access control
-* ✅ Infrastructure isolated inside VNet
+Isolation enforced via:
 
----
-
-## 🌐 Networking
-
-| Component         | Value                           |
-| ----------------- | ------------------------------- |
-| VNet              | `10.10.0.0/16`                  |
-| AKS Subnet        | `10.10.1.0/24`                  |
-| PostgreSQL Subnet | `10.10.2.0/24`                  |
-| Private DNS       | `*.postgres.database.azure.com` |
+* `nodeSelector`
+* `taints & tolerations`
 
 ---
 
-## 📦 Infrastructure (Terraform)
+## ☁️ Infrastructure (Terraform)
 
-All infrastructure is defined and managed via **Terraform**.
+### Provisioned Resources
 
-### Key features:
-
-* Remote state (Azure Storage)
-* Repeatable deployments
-* Environment-driven configuration
-* Clean separation of resources
-
-### Resources created:
-
-* Resource Group
-* Virtual Network + subnets
-* AKS (private cluster)
-* PostgreSQL Flexible Server
+* Azure Kubernetes Service (private cluster)
 * Azure Container Registry (ACR)
 * Log Analytics Workspace
-* Private DNS zones
+* Multiple node pools:
+
+  * system
+  * apppool
+  * dbpool
+  * monpool
+
+### Key Features
+
+* Private API endpoint
+* RBAC enabled
+* Azure CNI networking
+* Autoscaling node pools
+* Managed identities
 
 ---
 
-## 🔑 Secrets Management
+## 🔄 CI/CD Pipeline (GitHub Actions)
 
-Secrets are securely stored in:
+### 🏗️ Build Stage
 
-👉 **Azure Key Vault**
+Builds Docker image using:
 
-Example:
+```bash
+az acr build
+```
 
-* `postgres-admin-password`
+### 🚀 Deploy Stage
 
-Secrets are:
+* Uses Kustomize
+* Applies manifests via:
 
-* ❌ not committed to Git
-* ❌ not stored in Terraform variables
-* ✅ injected at runtime via CI/CD
+```bash
+az aks command invoke
+```
+
+### ✅ Verification
+
+* rollout status
+* pod health
 
 ---
 
-## 🔄 CI/CD (GitHub Actions)
+## 🐳 Application Layer
 
-Infrastructure is validated using GitHub Actions.
+* Node.js application
+* Kubernetes Deployment
+* ClusterIP Service
+* ConfigMap + Secret
 
-### Pipeline flow:
+### Health Probes
+
+* readiness
+* liveness
+
+### Resource Management
+
+* CPU / Memory limits enforced
+
+---
+
+## 🗄️ PostgreSQL (Stateful Workload)
+
+* Deployed as StatefulSet
+* Persistent storage via PVC (Azure Disk)
+
+### Storage Architecture
 
 ```text
-1. Azure Login (Service Principal)
-2. Fetch secret from Key Vault
-3. Terraform init
-4. Terraform validate
-5. Terraform plan
+Postgres Pod
+     │
+     ▼
+PersistentVolumeClaim (PVC)
+     │
+     ▼
+PersistentVolume (PV)
+     │
+     ▼
+Azure Managed Disk
 ```
+
+### ✅ Persistence Validation
+
+* ✔ Data inserted
+* ✔ Pod restarted
+* ✔ Data still present
 
 ---
 
-## 📁 Repository Structure
+## 📊 Observability Stack
 
-```text
-.
-├── infra/                      # Terraform configuration
-├── .github/workflows/          # CI/CD pipelines
-│   └── infra-plan.yml
-└── README.md
-```
+Installed via Helm:
 
----
+* Prometheus
+* Grafana
+* Alertmanager
+* kube-state-metrics
+* node-exporter
 
-## ⚙️ Required Configuration
+### PostgreSQL Monitoring
 
-### GitHub Secrets
-
-| Name                  | Description              |
-| --------------------- | ------------------------ |
-| AZURE_CLIENT_ID       | Service Principal ID     |
-| AZURE_CLIENT_SECRET   | Service Principal secret |
-| AZURE_TENANT_ID       | Azure tenant             |
-| AZURE_SUBSCRIPTION_ID | Target subscription      |
+* postgres-exporter deployed
+* metrics scraped by Prometheus
+* custom Grafana dashboard created
 
 ---
 
-## 🚀 How to Use
+## 📸 Screenshots
 
-### 1. Clone repository
+Add your screenshots to:
 
-```bash
-git clone <repo>
-cd test
+```
+docs/images/
 ```
 
-### 2. Initialize Terraform
+### Suggested Screenshots
 
-```bash
-cd infra
-terraform init
-```
+* 🧠 Workload Distribution
+![Pods](./docs/images/pods.png)
 
-### 3. Validate configuration
+* 🖥️ Node Pools
+![Nodes](./docs/images/nodes.png)
 
-```bash
-terraform validate
-```
+* 📦 Persistent Storage
+![PVC](./docs/images/pvc.png)
 
-### 4. Plan infrastructure
+* 📊 PostgreSQL Monitoring
+![Grafana PostgreSQL](./docs/images/grafana-postgres.png)
 
-```bash
-terraform plan
-```
+* 📈 Kubernetes Cluster Monitoring
+![Grafana Cluster](./docs/images/grafana-cluster.png)
 
-### 5. Apply (optional)
-
-```bash
-terraform apply
-```
+* 🧩 Node Monitoring
+![Grafana Node](./docs/images/grafana-node.png)
 
 ---
 
-## 💰 Cost Control
+## 🔐 Security
 
-⚠️ This project provisions real cloud resources.
-
-To avoid charges:
-
-```bash
-terraform destroy
-```
+* Private AKS cluster (no public API)
+* Grafana exposed temporarily (LoadBalancer)
+* reverted back to ClusterIP
+* Secrets stored in Kubernetes Secrets
+* RBAC enabled
 
 ---
 
-## 🧠 Key Concepts
+## 🧠 Key Concepts Demonstrated
 
-* Private cloud architecture
+* Kubernetes workload isolation
+* Stateful workloads in AKS
 * Infrastructure as Code (Terraform)
-* Azure networking (VNet, subnets, DNS)
-* Secure secret management (Key Vault)
-* RBAC & identity management
-* Kubernetes platform design
-* CI/CD automation
+* CI/CD pipelines (GitHub Actions)
+* Observability (Prometheus + Grafana)
+* Secure cluster architecture
 
 ---
 
-## 🚧 Roadmap
+## 🧪 Validation
 
-* [ ] Deploy application to AKS
-* [ ] Connect app to PostgreSQL
-* [ ] Add internal ingress
-* [ ] Introduce Helm charts
-* [ ] Monitoring & logging improvements
-
----
-
-## 📌 Why this project?
-
-Built as a **hands-on DevOps & Cloud Engineering project** to:
-
-* transition from AWS to Azure
-* learn secure cloud architecture
-* implement production-like patterns
-* build a portfolio-ready platform
+* ✔ Application deployed and running
+* ✔ PostgreSQL persistence verified
+* ✔ Prometheus collecting metrics
+* ✔ Grafana dashboards populated
 
 ---
 
-## 👨‍💻 Author
+## 🏁 Summary
 
-Cloud / DevOps learning project
-focused on real-world architecture and best practices
+This project simulates a real-world production environment, including:
+
+* isolated workloads
+* persistent database layer
+* monitoring & alerting
+* automated deployment pipelines
+
+---
+
+## 🚀 Future Improvements
+
+* Ingress + TLS (NGINX / App Gateway)
+* Azure Key Vault integration
+* ArgoCD (GitOps)
+* PostgreSQL backups
+* Horizontal autoscaling
