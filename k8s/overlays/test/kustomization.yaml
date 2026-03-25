@@ -16,7 +16,6 @@ resources:
   - ../../base/database/service.yaml
   - ../../base/database/statefulset.yaml
 
-  - ../../base/database/postgres-exporter-secret.yaml
   - ../../base/database/postgres-exporter-deployment.yaml
   - ../../base/database/postgres-exporter-service.yaml
   - ../../base/monitoring/postgres-exporter-servicemonitor.yaml

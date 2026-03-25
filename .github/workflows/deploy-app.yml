@@ -64,7 +64,7 @@ jobs:
         run: |
           kustomize build --load-restrictor LoadRestrictionsNone k8s/overlays/test > rendered.yaml
 
-      - name: Create app and database secrets in AKS
+      - name: Create app, database, and exporter secrets in AKS
         run: |
           az aks command invoke \
             --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -83,6 +83,10 @@ jobs:
               --from-literal=DB_NAME=appdb \
               --from-literal=DB_USER=appuser \
               --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              --dry-run=client -o yaml | kubectl apply -f -
+
+            kubectl create secret generic postgres-exporter-secret -n database \
+              --from-literal=DATA_SOURCE_NAME='postgresql://appuser:${{ secrets.DB_PASSWORD }}@postgres.database.svc.cluster.local:5432/appdb?sslmode=disable' \
               --dry-run=client -o yaml | kubectl apply -f -
             "
 
