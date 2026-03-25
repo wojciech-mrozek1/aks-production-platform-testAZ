@@ -25,3 +25,4 @@ images:
 
 patches:
   - path: app-patch.yaml
+  - path: database-patch.yaml
