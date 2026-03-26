@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'app/**'
       - 'k8s/**'
       - 'scripts/**'
       - '.github/workflows/deploy-app.yml'
