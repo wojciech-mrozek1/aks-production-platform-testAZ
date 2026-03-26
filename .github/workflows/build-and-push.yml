@@ -6,7 +6,9 @@ on:
       - main
     paths:
       - 'app/**'
+      - 'k8s/**'
       - '.github/workflows/build-and-push.yml'
+      - '.github/workflows/deploy-app.yml'
   workflow_dispatch:
 
 permissions:
