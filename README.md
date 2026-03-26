@@ -2,13 +2,7 @@
 
 This project demonstrates a **production-style Kubernetes platform** built on **Azure Kubernetes Service (AKS)**.
 
-It showcases real-world DevOps practices including:
-
-* Infrastructure as Code (Terraform)
-* CI/CD pipelines (GitHub Actions)
-* Workload isolation using node pools and taints
-* Stateful workloads with persistent storage
-* Full observability stack (Prometheus + Grafana)
+It focuses on **platform engineering practices**, including infrastructure design, workload isolation, deployment automation, and observability — rather than application complexity.
 
 ---
 
@@ -18,7 +12,7 @@ It showcases real-world DevOps practices including:
 
 ```text
                     ┌─────────────────────────────┐
-                    │        GitHub Actions        │
+                    │        GitHub Actions       │
                     │      (CI/CD Pipeline)       │
                     └────────────┬────────────────┘
                                  │
@@ -75,7 +69,6 @@ Isolation enforced via:
 * Azure Container Registry (ACR)
 * Log Analytics Workspace
 * Multiple node pools:
-
   * system
   * apppool
   * dbpool
@@ -91,6 +84,20 @@ Isolation enforced via:
 
 ---
 
+## 🔒 Private Cluster Access
+
+The AKS cluster is **private** and does not expose a public API endpoint.
+
+All operations and deployments are executed via:
+
+```bash
+az aks command invoke
+```
+
+This allows secure interaction with the cluster without exposing it publicly.
+
+---
+
 ## 🔄 CI/CD Pipeline (GitHub Actions)
 
 ### 🏗️ Build Stage
@@ -99,6 +106,22 @@ Builds Docker image using:
 
 ```bash
 az acr build
+```
+
+### 🔁 Immutable Deployments
+
+Application is deployed using **commit-based image tags (SHA)** instead of `latest`.
+
+This ensures:
+
+* deterministic deployments
+* traceability between code and running version
+* reproducibility of environments
+
+Flow:
+
+```
+git push → build image (ACR) → tag = commit SHA → deploy to AKS
 ```
 
 ### 🚀 Deploy Stage
@@ -113,13 +136,13 @@ az aks command invoke
 ### ✅ Verification
 
 * rollout status
-* pod health
+* pod health checks
 
 ---
 
 ## 🐳 Application Layer
 
-* Node.js application
+* Node.js application (sample workload)
 * Kubernetes Deployment
 * ClusterIP Service
 * ConfigMap + Secret
@@ -183,30 +206,22 @@ Installed via Helm:
 
 ## 📸 Screenshots
 
-Add your screenshots to:
-
-```
-docs/images/
-```
-
-### Suggested Screenshots
-
-* 🧠 Workload Distribution
+### 🧠 Workload Distribution
 ![Pods](./docs/images/pods.png)
 
-* 🖥️ Node Pools
+### 🖥️ Node Pools
 ![Nodes](./docs/images/nodes.png)
 
-* 📦 Persistent Storage
+### 📦 Persistent Storage
 ![PVC](./docs/images/pvc.png)
 
-* 📊 PostgreSQL Monitoring
+### 📊 PostgreSQL Monitoring
 ![Grafana PostgreSQL](./docs/images/grafana-postgres.png)
 
-* 📈 Kubernetes Cluster Monitoring
+### 📈 Kubernetes Cluster Monitoring
 ![Grafana Cluster](./docs/images/grafana-cluster.png)
 
-* 🧩 Node Monitoring
+### 🧩 Node Monitoring
 ![Grafana Node](./docs/images/grafana-node.png)
 
 ---
@@ -214,9 +229,10 @@ docs/images/
 ## 🔐 Security
 
 * Private AKS cluster (no public API)
-* Grafana exposed temporarily (LoadBalancer)
-* reverted back to ClusterIP
-* Secrets stored in Kubernetes Secrets
+* Grafana exposed temporarily for testing and reverted to ClusterIP
+* Secrets are NOT stored in the repository
+* Secrets are injected dynamically via GitHub Actions
+* Kubernetes Secrets created during deployment
 * RBAC enabled
 
 ---
@@ -227,6 +243,7 @@ docs/images/
 * Stateful workloads in AKS
 * Infrastructure as Code (Terraform)
 * CI/CD pipelines (GitHub Actions)
+* Immutable deployments (SHA-based)
 * Observability (Prometheus + Grafana)
 * Secure cluster architecture
 
@@ -249,13 +266,14 @@ This project simulates a real-world production environment, including:
 * persistent database layer
 * monitoring & alerting
 * automated deployment pipelines
+* secure private cluster operations
 
 ---
 
 ## 🚀 Future Improvements
 
-* Ingress + TLS (NGINX / App Gateway)
-* Azure Key Vault integration
-* ArgoCD (GitOps)
-* PostgreSQL backups
-* Horizontal autoscaling
+* Azure Key Vault + External Secrets
+* GitOps (ArgoCD)
+* Ingress with TLS termination
+* PostgreSQL automated backups
+* Advanced alerting and SLOs
