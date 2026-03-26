@@ -19,29 +19,16 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health check (basic)
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// Readiness check
 app.get("/ready", (req, res) => {
   res.status(200).json({ status: "ready" });
 });
 
-// Liveness check
 app.get("/live", (req, res) => {
   res.status(200).json({ status: "alive" });
-});
-
-// Optional debug endpoint
-app.get("/env", (req, res) => {
-  res.json({
-    APP_NAME: process.env.APP_NAME || null,
-    APP_ENV: process.env.APP_ENV || null,
-    APP_VERSION: process.env.APP_VERSION || null,
-    PORT: process.env.PORT || null
-  });
 });
 
 app.listen(port, () => {

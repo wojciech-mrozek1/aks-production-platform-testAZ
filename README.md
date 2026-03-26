@@ -1,4 +1,4 @@
-# 🚀 Production-Grade AKS Platform with Monitoring & Stateful Workloads
+# 🚀 Production-Style AKS Platform with Monitoring & Stateful Workloads
 
 This project demonstrates a **production-style Kubernetes platform** built on **Azure Kubernetes Service (AKS)**.
 
