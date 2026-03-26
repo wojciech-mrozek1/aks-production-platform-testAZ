@@ -30,7 +30,7 @@ jobs:
       IMAGE_NAME: ${{ vars.IMAGE_NAME }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
-      IMAGE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      IMAGE_TAG: "${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}"
 
     steps:
       - name: Checkout
